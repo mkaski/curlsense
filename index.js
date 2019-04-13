@@ -15,7 +15,7 @@ const analyzeSession = data => {
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '200mb' }));
 
 // Check status.
 app.get('/health', (req, res) => res.sendStatus(200));
