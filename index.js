@@ -1,13 +1,10 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const mongoose = require('mongoose');
 
-const { Schema } = mongoose;
+const { SessionModel } = require('./models');
 
 const environment = process.env.NODE_ENV || 'development';
 const PORT = process.env.PORT || 3333;
-const databaseURI =
-  process.env.PRODUCTION_DB || 'mongodb://localhost:27017/local';
 
 const analyzeSession = data => {
   const analysis = {
@@ -15,29 +12,6 @@ const analyzeSession = data => {
   };
   return analysis;
 };
-
-const SessionSchema = new Schema(
-  {
-    analysis: { type: Object },
-    type: { type: String },
-    dataset: [
-      {
-        sensor: String,
-        data: [
-          {
-            timestamp: Number,
-            x: Number,
-            y: Number,
-            z: Number,
-          },
-        ],
-      },
-    ],
-  },
-  { collection: 'Sessions' }
-);
-
-const SessionModel = mongoose.model('Session', SessionSchema);
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -60,6 +34,7 @@ app.post('/data', async (req, res) => {
       });
       // Save to db.
       await newSession.save();
+      console.log('saved');
       return res.send(analysis).end();
     } catch (err) {
       console.log(err);
@@ -78,16 +53,6 @@ app.get('/data', async (req, res) => {
   } catch (err) {
     return res.status(500).send(err);
   }
-});
-
-// Mongoose setup
-mongoose.connect(databaseURI);
-const db = mongoose.connection;
-db.on('error', () => {
-  console.log('---FAILED to connect to mongoose');
-});
-db.once('open', () => {
-  console.log('+++Connected to mongoose');
 });
 
 // Listen.
